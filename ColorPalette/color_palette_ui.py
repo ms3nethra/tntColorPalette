@@ -12,8 +12,12 @@ class TNTColorPalette(QWidget):
     def __init__(self, parent=None):
         super(TNTColorPalette, self).__init__(parent)
         self.setWindowTitle("TNT Color Palette")
-        self.resize(400, 400)
+        size_mult = 10
+        self.setMinimumSize(3*size_mult, 1.8*size_mult)
         self.init_ui()
+        resize_mult = 140
+        self.resize(3*resize_mult, 1.8*resize_mult)
+
 
     def init_ui(self):
         # get the script directory and load the JSON file
@@ -40,15 +44,16 @@ class TNTColorPalette(QWidget):
         self.pic_color_btn = QPushButton()
         self.pic_color_btn.setStyleSheet("background-color: #E6E6E6; border: 1px solid #333;")
         self.pic_color_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.pic_color_btn.setMinimumSize(0, 0)
         top_hlayout.addWidget(self.pic_color_btn)
-        main_layout.addLayout(top_hlayout, 1)
+        main_layout.addLayout(top_hlayout)
 
         # --- Thick Separation Line ---
         sep_line = QFrame()
         sep_line.setFrameShape(QFrame.HLine)
         sep_line.setFrameShadow(QFrame.Sunken)
         sep_line.setLineWidth(5)
-        main_layout.addWidget(sep_line, 1)
+        main_layout.addWidget(sep_line)
 
         # --- Color Swatches: Each category is a row ---
         for category, colors in self.color_data.items():
@@ -60,13 +65,13 @@ class TNTColorPalette(QWidget):
                 btn = self.create_color_button(color_name, hex_value)
                 row_layout.addWidget(btn)
 
-            main_layout.addLayout(row_layout, 1)
+            main_layout.addLayout(row_layout)
 
     def create_color_button(self, color_name, hex_value):
         btn = QPushButton()
         btn.setToolTip(f"{color_name}: {hex_value}")
         btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
+        btn.setMinimumSize(0, 0)
         btn.setStyleSheet(
             f"QPushButton {{background-color: {hex_value}; border: 1px solid #333;}}"
         )
