@@ -18,7 +18,6 @@ class TNTColorPalette(QWidget):
         resize_mult = 140
         self.resize(3*resize_mult, 1.8*resize_mult)
 
-
     def init_ui(self):
         # get the script directory and load the JSON file
         script_path = os.path.dirname(__file__)
@@ -33,7 +32,7 @@ class TNTColorPalette(QWidget):
         # --- Main Layout (vertical) ---
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(0)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setContentsMargins(4, 4, 4, 4)
         self.setLayout(main_layout)
         
         # --- Top Row: "Pick Color" Button ---
