@@ -5,14 +5,14 @@ import sys
 from PySide2 import QtCore
 from PySide2.QtWidgets import (
     QWidget, QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QGroupBox,
-    QGridLayout, QPushButton, QMessageBox, QLabel
+    QGridLayout, QPushButton, QMessageBox, QFrame, QLabel, QSizePolicy
     )
 
 class TNTColorPalette(QWidget):
     def __init__(self, parent=None):
         super(TNTColorPalette, self).__init__(parent)
         self.setWindowTitle("TNT Color Palette")
-        self.resize(400,400)
+        self.resize(400, 400)
         self.init_ui()
 
     def init_ui(self):
@@ -26,79 +26,61 @@ class TNTColorPalette(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to load color_palette.json:\n{e}")
             self.color_data = {}
 
-
+        # --- Main Layout (vertical) ---
         main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(main_layout)
         
+        # --- Top Row: "Pick Color" Button ---
+        top_hlayout = QHBoxLayout()
+        top_hlayout.setSpacing(0)
+        top_hlayout.setContentsMargins(0, 0, 0, 0)
 
-        vlayout1 = QVBoxLayout()
         self.pic_color_btn = QPushButton()
-        vlayout1.addWidget(self.pic_color_btn)
+        self.pic_color_btn.setStyleSheet("background-color: #E6E6E6; border: 1px solid #333;")
+        self.pic_color_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        top_hlayout.addWidget(self.pic_color_btn)
+        main_layout.addLayout(top_hlayout, 1)
 
-        vlayout2 = QVBoxLayout()
-        rgb_hlayout = QHBoxLayout()
-        grayscale_hlayout = QHBoxLayout()
-        pastel_hlayout = QHBoxLayout()
-        light_hlayout = QHBoxLayout()
-        pure_hlayout = QHBoxLayout()
-        dark_hlayout = QHBoxLayout()
-        darker_hlayout = QHBoxLayout()
-        pale_hlayout = QHBoxLayout()
-        vlayout2.addLayout(rgb_hlayout)
-        vlayout2.addLayout(grayscale_hlayout)
-        vlayout2.addLayout(pastel_hlayout)
-        vlayout2.addLayout(light_hlayout)
-        vlayout2.addLayout(pure_hlayout)
-        vlayout2.addLayout(dark_hlayout)
-        vlayout2.addLayout(darker_hlayout)
-        vlayout2.addLayout(pale_hlayout)
+        # --- Thick Separation Line ---
+        sep_line = QFrame()
+        sep_line.setFrameShape(QFrame.HLine)
+        sep_line.setFrameShadow(QFrame.Sunken)
+        sep_line.setLineWidth(5)
+        main_layout.addWidget(sep_line, 1)
 
-        main_layout.addLayout(vlayout1)
-        # main_layout.addWidget()
-        main_layout.addLayout(vlayout2)
+        # --- Color Swatches: Each category is a row ---
+        for category, colors in self.color_data.items():
+            row_layout = QHBoxLayout()
+            row_layout.setSpacing(0)
+            row_layout.setContentsMargins(0, 0, 0, 0)
 
-        for color_type, color_patette in self.color_data.items():
-            if color_type == "RGB":
-                for colorname, hexvalue in color_patette.items():
-                    rgb_btn = QPushButton()
-                    rgb_hlayout.addWidget(rgb_btn)
+            for color_name, hex_value in colors.items():
+                btn = self.create_color_button(color_name, hex_value)
+                row_layout.addWidget(btn)
 
-            if color_type == "Grayscale":
-                for colorname, hexvalue in color_patette.items():
-                    grayscale_btn = QPushButton()
-                    grayscale_hlayout.addWidget(grayscale_btn)
+            main_layout.addLayout(row_layout, 1)
 
-            if color_type == "Pastel":
-                for colorname, hexvalue in color_patette.items():
-                    pastel_btn = QPushButton()
-                    pastel_hlayout.addWidget(pastel_btn)
+    def create_color_button(self, color_name, hex_value):
+        btn = QPushButton()
+        btn.setToolTip(f"{color_name}: {hex_value}")
+        btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-            if color_type == "Light":
-                for colorname, hexvalue in color_patette.items():
-                    light_btn = QPushButton()
-                    light_hlayout.addWidget(light_btn)
+        btn.setStyleSheet(
+            f"QPushButton {{background-color: {hex_value}; border: 1px solid #333;}}"
+        )
 
-            if color_type == "Pure":
-                for colorname, hexvalue in color_patette.items():
-                    pure_btn = QPushButton()
-                    pure_hlayout.addWidget(pure_btn)
+        btn.clicked.connect(lambda: self.color_clicked(color_name, hex_value))
+        return btn
 
-            if color_type == "Dark":
-                for colorname, hexvalue in color_patette.items():
-                    dark_btn = QPushButton()
-                    dark_hlayout.addWidget(dark_btn)
+    def color_clicked(self, name, hex_code):
+        print(f"Clicked Color: {name} -> {hex_code}")
 
-            if color_type == "Darker":
-                for colorname, hexvalue in color_patette.items():
-                    darker_btn = QPushButton()
-                    darker_hlayout.addWidget(darker_btn)
-
-            if color_type == "Pale":
-                for colorname, hexvalue in color_patette.items():
-                    pale_btn = QPushButton()
-                    pale_hlayout.addWidget(pale_btn)
-
-
+    @staticmethod
+    def hex_to_rgb(hex_str):
+        hex_str = hex_str.lstrip('#')
+        return tuple(int(hex_str[i:i+2], 16) / 255.0 for i in (0, 2, 4))
 
 def show_tnt_color_palette():
     parent = hou.qt.floatingPanelWindow(None)
