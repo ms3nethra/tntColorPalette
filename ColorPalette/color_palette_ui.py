@@ -1,9 +1,9 @@
 import os
 import json
-#import hou
+import hou
 import sys
-from PySide6 import QtCore
-from PySide6.QtWidgets import (
+from PySide2 import QtCore
+from PySide2.QtWidgets import (
     QWidget, QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QGroupBox,
     QGridLayout, QPushButton, QMessageBox, QLabel
     )
@@ -99,14 +99,14 @@ class TNTColorPalette(QWidget):
                     pale_hlayout.addWidget(pale_btn)
 
 
-"""
+
 def show_tnt_color_palette():
     parent = hou.qt.floatingPanelWindow(None)
     dialog = TNTColorPalette(parent=parent)
     dialog.setWindowFlags(QtCore.Qt.Window)  # Set as independent window
     dialog.show()
     return dialog
-"""
+
 # For standalone testing outside Houdini.
 if __name__ == "__main__":
     app = QApplication(sys.argv)
