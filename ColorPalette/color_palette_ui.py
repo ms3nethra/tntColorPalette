@@ -7,6 +7,7 @@ from PySide2.QtWidgets import (
     QWidget, QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QGroupBox,
     QGridLayout, QPushButton, QMessageBox, QFrame, QLabel, QSizePolicy
     )
+# from .color_logic import set_selected_node_color
 
 class TNTColorPalette(QWidget):
     def __init__(self, parent=None):
@@ -68,7 +69,10 @@ class TNTColorPalette(QWidget):
 
     def create_color_button(self, color_name, hex_value):
         btn = QPushButton()
-        btn.setToolTip(f"{color_name}: {hex_value}")
+        r, g, b = self.hex_to_rgb(hex_value)
+        hou_color = hou.Color((r, g, b))
+        color_str = f"({r:.2f}, {g:.2f}, {b:.2f} )"
+        btn.setToolTip(f"{color_name}: {hex_value} {color_str}")
         btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         btn.setMinimumSize(0, 0)
         btn.setStyleSheet(
@@ -79,12 +83,35 @@ class TNTColorPalette(QWidget):
         return btn
 
     def color_clicked(self, name, hex_code):
-        print(f"Clicked Color: {name} -> {hex_code}")
+        # print(f"Clicked Color: {name} -> {hex_code}")
+        self.set_selected_node_color(hex_code)
 
     @staticmethod
     def hex_to_rgb(hex_str):
         hex_str = hex_str.lstrip('#')
         return tuple(int(hex_str[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+    
+    @staticmethod
+    def hex_to_hue_color(hex_color):
+        """
+        Convert a hex color string to a hou.color object.
+        """
+        hex_color = hex_color.lstrip("#")
+        r = int(hex_color[0:2], 16) / 255.0
+        g = int(hex_color[2:4], 16) / 255.0
+        b = int(hex_color[4:6], 16) / 255.0
+        return hou.Color(r, g, b)
+
+    @staticmethod
+    def set_selected_node_color(hex_color):
+        """
+        Set the color of all selected nodes
+        """
+        color = TNTColorPalette.hex_to_hue_color(hex_color)
+        nodes = hou.selectedNodes()
+        if nodes:
+            for node in nodes:
+                node.setColor(color)
 
 def show_tnt_color_palette():
     parent = hou.qt.floatingPanelWindow(None)
