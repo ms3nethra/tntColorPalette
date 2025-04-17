@@ -13,38 +13,22 @@ from .color_logic import (
     hex_to_hue_color, hou_color_to_hex
 )
 
-def load_pic_color():
-    """Load the pick color value from pick_color.json; default to "#7F7F7F" if not available."""
-    try:
-        path = os.path.join(os.path.dirname(__file__), "pick_color.json")
-        with open(path, "r") as f:
-            data = json.load(f)
-        return data["pic_color"]["gray"]
-    except Exception:
-        return "#7F7F7F"
-
-def save_pic_color(hex_color):
-    """Save the pick color value to pick_color.json."""
-    try:
-        path = os.path.join(os.path.dirname(__file__), "pick_color.json")
-        with open(path, "w") as f:
-            json.dump({"pic_color": {"gray": hex_color}}, f)
-    except Exception as e:
-        print("Error saving pick_color.json:", e)
-
 # Custom button subclass for the Pick Color Button.
 class PicColorButton(QPushButton):
-    def __init__(self, initial_color, parent=None):
+    def __init__(self, parent=None):
         super(PicColorButton, self).__init__("Pick Color", parent)
+        self.pic_color = load_pic_color()
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumSize(0, 0)
-        self.pic_color = initial_color  # Stored as a hex string.
         self.update_button_color()
         # Connect the single click (the clicked signal).
         self.clicked.connect(self.single_click_action)
     
     def update_button_color(self):
-        self.setStyleSheet(f"background-color: {self.pic_color}; border: 1px solid #333; padding: 0; margin: 0;")
+        self.setStyleSheet(
+            f"background-color: {self.pic_color};"
+            "border: 1px solid #333; padding: 0; margin: 0;"
+        )
     
     def single_click_action(self):
         # Single click: assign the current pic_color to selected nodes.
@@ -52,8 +36,7 @@ class PicColorButton(QPushButton):
     
     def mouseDoubleClickEvent(self, event):
         """
-        Double click: Open the Houdini color picker with the current button color as initial.
-        If a new color is selected, update the button, save the new color, and assign it to selected nodes.
+        Double‐click → open Houdini's color picker
         """
         initial_hou_color = hex_to_hue_color(self.pic_color)
         new_color = pick_color(initial_color=initial_hou_color)
@@ -98,9 +81,7 @@ class TNTColorPalette(QWidget):
         top_hlayout.setSpacing(0)
         top_hlayout.setContentsMargins(0, 0, 0, 0)
 
-        default_pic_color = load_pic_color()
-        self.pic_color_btn = PicColorButton(default_pic_color)
-
+        self.pic_color_btn = PicColorButton()
         top_hlayout.addWidget(self.pic_color_btn)
         main_layout.addLayout(top_hlayout)
 
@@ -139,6 +120,7 @@ class TNTColorPalette(QWidget):
         return btn
 
     def color_clicked(self, name, hex_code):
+        """Handle a swatch click."""
         # print(f"Clicked Color: {name} -> {hex_code}")
         set_selected_node_color(hex_code)
 
