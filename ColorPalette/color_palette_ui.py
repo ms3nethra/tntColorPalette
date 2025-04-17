@@ -7,7 +7,64 @@ from PySide2.QtWidgets import (
     QWidget, QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QGroupBox,
     QGridLayout, QPushButton, QMessageBox, QFrame, QLabel, QSizePolicy
     )
-# from .color_logic import set_selected_node_color
+
+from .color_logic import (
+    set_selected_node_color, pick_color, load_pic_color, save_pic_color,
+    hex_to_hue_color, hou_color_to_hex
+)
+
+def load_pic_color():
+    """Load the pick color value from pick_color.json; default to "#7F7F7F" if not available."""
+    try:
+        path = os.path.join(os.path.dirname(__file__), "pick_color.json")
+        with open(path, "r") as f:
+            data = json.load(f)
+        return data["pic_color"]["gray"]
+    except Exception:
+        return "#7F7F7F"
+
+def save_pic_color(hex_color):
+    """Save the pick color value to pick_color.json."""
+    try:
+        path = os.path.join(os.path.dirname(__file__), "pick_color.json")
+        with open(path, "w") as f:
+            json.dump({"pic_color": {"gray": hex_color}}, f)
+    except Exception as e:
+        print("Error saving pick_color.json:", e)
+
+# Custom button subclass for the Pick Color Button.
+class PicColorButton(QPushButton):
+    def __init__(self, initial_color, parent=None):
+        super(PicColorButton, self).__init__("Pick Color", parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMinimumSize(0, 0)
+        self.pic_color = initial_color  # Stored as a hex string.
+        self.update_button_color()
+        # Connect the single click (the clicked signal).
+        self.clicked.connect(self.single_click_action)
+    
+    def update_button_color(self):
+        self.setStyleSheet(f"background-color: {self.pic_color}; border: 1px solid #333; padding: 0; margin: 0;")
+    
+    def single_click_action(self):
+        # Single click: assign the current pic_color to selected nodes.
+        set_selected_node_color(self.pic_color)
+    
+    def mouseDoubleClickEvent(self, event):
+        """
+        Double click: Open the Houdini color picker with the current button color as initial.
+        If a new color is selected, update the button, save the new color, and assign it to selected nodes.
+        """
+        initial_hou_color = hex_to_hue_color(self.pic_color)
+        new_color = pick_color(initial_color=initial_hou_color)
+        if new_color:
+            new_hex = hou_color_to_hex(new_color)
+            self.pic_color = new_hex
+            self.update_button_color()
+            save_pic_color(new_hex)
+            set_selected_node_color(new_hex)
+        # Pass the event up.
+        super(PicColorButton, self).mouseDoubleClickEvent(event)
 
 class TNTColorPalette(QWidget):
     def __init__(self, parent=None):
@@ -18,9 +75,9 @@ class TNTColorPalette(QWidget):
         self.init_ui()
         resize_mult = 140
         self.resize(3*resize_mult, 1.8*resize_mult)
-
+        
     def init_ui(self):
-        # get the script directory and load the JSON file
+        # Load swatch palette from JSON (color_palette.json)
         script_path = os.path.dirname(__file__)
         json_file = os.path.join(script_path, "color_palette.json")
         try:
@@ -41,10 +98,9 @@ class TNTColorPalette(QWidget):
         top_hlayout.setSpacing(0)
         top_hlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.pic_color_btn = QPushButton()
-        self.pic_color_btn.setStyleSheet("background-color: #E6E6E6; border: 1px solid #333;")
-        self.pic_color_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.pic_color_btn.setMinimumSize(0, 0)
+        default_pic_color = load_pic_color()
+        self.pic_color_btn = PicColorButton(default_pic_color)
+
         top_hlayout.addWidget(self.pic_color_btn)
         main_layout.addLayout(top_hlayout)
 
@@ -84,34 +140,12 @@ class TNTColorPalette(QWidget):
 
     def color_clicked(self, name, hex_code):
         # print(f"Clicked Color: {name} -> {hex_code}")
-        self.set_selected_node_color(hex_code)
+        set_selected_node_color(hex_code)
 
     @staticmethod
     def hex_to_rgb(hex_str):
         hex_str = hex_str.lstrip('#')
         return tuple(int(hex_str[i:i+2], 16) / 255.0 for i in (0, 2, 4))
-    
-    @staticmethod
-    def hex_to_hue_color(hex_color):
-        """
-        Convert a hex color string to a hou.color object.
-        """
-        hex_color = hex_color.lstrip("#")
-        r = int(hex_color[0:2], 16) / 255.0
-        g = int(hex_color[2:4], 16) / 255.0
-        b = int(hex_color[4:6], 16) / 255.0
-        return hou.Color(r, g, b)
-
-    @staticmethod
-    def set_selected_node_color(hex_color):
-        """
-        Set the color of all selected nodes
-        """
-        color = TNTColorPalette.hex_to_hue_color(hex_color)
-        nodes = hou.selectedNodes()
-        if nodes:
-            for node in nodes:
-                node.setColor(color)
 
 def show_tnt_color_palette():
     parent = hou.qt.floatingPanelWindow(None)
