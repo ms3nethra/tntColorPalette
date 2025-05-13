@@ -18,15 +18,21 @@ def hou_color_to_hex(hou_color):
     r, g, b = hou_color.rgb()
     return f"#{int(r * 255):02X}{int(g * 255):02X}{int(b * 255):02X}"
 
-def set_selected_node_color(hex_color):
+def set_selected_item_color(hex_color):
     """
-    Set the color of all selected nodes
+    Set the color of *all* selected items in the active Network Editor:
+    nodes, subnet inputs, sticky notes, backdrops, network boxes, etc.
     """
     color = hex_to_hue_color(hex_color)
-    nodes = hou.selectedNodes()
-    if nodes:
-        for node in nodes:
-            node.setColor(color)
+    
+    # Get all selected items across ALL network editors
+    selected_items = hou.selectedItems()
+
+    for item in selected_items:
+        try:
+            item.setColor(color)
+        except AttributeError:
+            pass
 
 def pick_color(initial_color=None):
     """

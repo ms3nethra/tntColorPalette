@@ -9,7 +9,7 @@ from PySide2.QtWidgets import (
     )
 
 from .color_logic import (
-    set_selected_node_color, pick_color, load_pic_color, save_pic_color,
+    set_selected_item_color, pick_color, load_pic_color, save_pic_color,
     hex_to_hue_color, hou_color_to_hex
 )
 
@@ -32,7 +32,7 @@ class PicColorButton(QPushButton):
     
     def single_click_action(self):
         # Single click: assign the current pic_color to selected nodes.
-        set_selected_node_color(self.pic_color)
+        set_selected_item_color(self.pic_color)
     
     def mouseDoubleClickEvent(self, event):
         """
@@ -45,7 +45,7 @@ class PicColorButton(QPushButton):
             self.pic_color = new_hex
             self.update_button_color()
             save_pic_color(new_hex)
-            set_selected_node_color(new_hex)
+            set_selected_item_color(new_hex)
         # Pass the event up.
         super(PicColorButton, self).mouseDoubleClickEvent(event)
 
@@ -122,7 +122,7 @@ class TNTColorPalette(QWidget):
     def color_clicked(self, name, hex_code):
         """Handle a swatch click."""
         # print(f"Clicked Color: {name} -> {hex_code}")
-        set_selected_node_color(hex_code)
+        set_selected_item_color(hex_code)
 
     @staticmethod
     def hex_to_rgb(hex_str):
