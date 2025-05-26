@@ -2,7 +2,7 @@ import os
 import json
 import hou
 import sys
-from PySide2 import QtCore
+from PySide2 import QtCore, QtGui
 from PySide2.QtWidgets import (
     QWidget, QApplication, QVBoxLayout, QHBoxLayout, QScrollArea, QGroupBox,
     QGridLayout, QPushButton, QMessageBox, QFrame, QLabel, QSizePolicy
@@ -53,6 +53,9 @@ class TNTColorPalette(QWidget):
     def __init__(self, parent=None):
         super(TNTColorPalette, self).__init__(parent)
         self.setWindowTitle("TNT Color Palette")
+        user_pref_dir = hou.getenv("HOUDINI_USER_PREF_DIR")
+        icon_path = os.path.join(user_pref_dir, "scripts", "python", "tntIcons", "tnt_icon_dark.svg")
+        self.setWindowIcon(QtGui.QIcon(icon_path))
         size_mult = 10
         self.setMinimumSize(3*size_mult, 1.8*size_mult)
         self.init_ui()
