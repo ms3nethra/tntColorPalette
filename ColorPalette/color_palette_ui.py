@@ -133,11 +133,18 @@ class TNTColorPalette(QWidget):
         return tuple(int(hex_str[i:i+2], 16) / 255.0 for i in (0, 2, 4))
 
 def show_tnt_color_palette():
+    if hasattr(hou.session, "tnt_color_palette_ui") and hou.session.tnt_color_palette_ui.isVisible():
+        hou.session.tnt_color_palette_ui.raise_()
+        hou.session.tnt_color_palette_ui.activateWindow()
+        return hou.session.tnt_color_palette_ui
+
     parent = hou.qt.floatingPanelWindow(None)
-    dialog = TNTColorPalette(parent=parent)
-    dialog.setWindowFlags(QtCore.Qt.Window)  # Set as independent window
-    dialog.show()
-    return dialog
+    ui = TNTColorPalette(parent=parent)
+    ui.setWindowFlags(QtCore.Qt.Window)
+    ui.show()
+
+    hou.session.tnt_color_palette_ui = ui
+    return ui
 
 # For standalone testing outside Houdini.
 if __name__ == "__main__":
